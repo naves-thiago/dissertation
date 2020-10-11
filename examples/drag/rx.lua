@@ -1,0 +1,1 @@
+../../lua_tasks/examples/news_feed_rx/rx.lua
