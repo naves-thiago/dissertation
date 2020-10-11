@@ -1,0 +1,3 @@
+[submodule "lua_tasks"]
+	path = lua_tasks
+	url = git@github.com:naves-thiago/lua_tasks.git
