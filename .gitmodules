@@ -1,3 +1,6 @@
 [submodule "lua_tasks"]
 	path = lua_tasks
 	url = git@github.com:naves-thiago/lua_tasks.git
+[submodule "suit"]
+	path = suit
+	url = git@github.com:vrld/suit.git
