@@ -17,11 +17,11 @@ function love.load()
 			       y >= square.y and y <= square.y + square.size
 		end)
 		:exhaustMap(function(start_x, start_y) -- Restart for each mousepressed event
-			local squarex = square.x
-			local squarey = square.y
+			local squarex = start_x - square.x -- Find the click position realtive to the square corner
+			local squarey = start_y - square.y
 			return love.mousemoved
-						:map(function(x, y) -- offset by the start position
-							return x - start_x + squarex, y - start_y + squarey
+						:map(function(x, y) -- offset by the relative click position
+							return x - squarex, y - squarey
 						end)
 						:takeUntil(love.mousereleased) -- stop tracking when the mouse is released
 		end)
