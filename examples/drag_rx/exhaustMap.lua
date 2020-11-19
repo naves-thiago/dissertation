@@ -1,1 +1,1 @@
-../../lua_tasks/examples/news_feed_rx/exhaustMap.lua
+../../libs/exhaustMap.lua
