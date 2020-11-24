@@ -19,8 +19,12 @@ local bumper2x = screenWidth - 2 * bumperWidth
 local bumper2y = bumper1y
 
 local ballSize = 20
-local ballx = (screenWidth - ballSize) / 2
-local bally = (screenHeight - ballSize) / 2
+local ballxInitial = (screenWidth - ballSize) / 2
+local ballyInitial = (screenHeight - ballSize) / 2
+local ballx = ballxInitial
+local bally = ballyInitial
+local ballxSpeed = 300
+local ballySpeed = 300
 
 function bumperPosFactory(keyUp, keyDown, currPos)
 	return love.keypressed
@@ -37,6 +41,34 @@ function bumperPosFactory(keyUp, keyDown, currPos)
 		end)
 end
 
+function didColide()
+	if bally + ballSize>= bumper1y and bally <= bumper1y + bumperHeight and
+		ballx <= bumper1x + bumperWidth and ballxSpeed < 0 then
+		return true
+	end
+
+	if bally + ballSize >= bumper2y and bally <= bumper2y + bumperHeight and
+		ballx + ballSize >= bumper2x and ballxSpeed > 0 then
+		return true
+	end
+
+	return false
+end
+
+--[[
+function clamp(val, min, max)
+	if val > max then
+		return max
+	end
+
+	if val < min then
+		return min
+	end
+
+	return val
+end
+--]]
+
 function love.load()
 	love.window.setMode(screenWidth, screenHeight)
 
@@ -44,13 +76,35 @@ function love.load()
 	bumper2yS = bumperPosFactory('up', 'down', bumper2y)
 	bumper1yS:subscribe(function(pos) bumper1y = pos end)
 	bumper2yS:subscribe(function(pos) bumper2y = pos end)
-end
 
---[[
-function love.update(dt)
-	scheduler:update(dt)
+	didScoreS = rx.Subject.create()
+	startMovingS = rx.BehaviorSubject.create(1)
+	ballxS = startMovingS:exhaustMap(function()
+		return love.update
+			:map(function(dt) return dt * ballxSpeed end)
+			:scan(function(acc, new) return acc + new end, ballx)
+			:takeUntil(didScoreS)
+			:tap(function()
+				if didColide() then
+					ballxSpeed = -ballxSpeed
+				end
+			end)
+			--:tap(nil, nil, function() print("complete") end)
+	end)
+
+	ballxS:subscribe(function(x) ballx = x end)
+
+	ballxS:subscribe(function(x)
+		if ballx > screenWidth - ballSize or
+			ballx < 0 then
+			print('score')
+			didScoreS(1)
+			ballx = ballxInitial
+			bally = ballyInitial
+			startMovingS(1)
+		end
+	end)
 end
---]]
 
 function love.draw()
 	love.graphics.rectangle('fill', ballx, bally, ballSize, ballSize)
