@@ -49,86 +49,6 @@ function setBallDirection()
 	ballYSpeed = distCenter * ballSpeed * dirY
 end
 
---[[
-function startBumperTask(key_up, key_down, bumperN)
-	tasks.task_t:new(function()
-		while true do
-			-- Sub-tarefas criadas como independentes para que ao iniciar o
-			-- movimento em uma direção o par_or pare de esperar a tecla da
-			-- direção oposta
-			tasks.par_or(
-			function()
-				tasks.await(key_up .. '_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						_G[yVar] = math.max(0, _G[yVar] - bumperSpeed * dt)
-					end
-				end,
-				function()
-					tasks.await(key_up .. '_up')
-					tasks.emit('bumper' .. bumperN .. '_done')
-				end
-				)(true, true)
-			end,
-			function()
-				tasks.await(key_down .. '_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						_G[yVar] = math.min(screenHeight - bumperHeight, _G[yVar] + bumperSpeed * dt)
-					end
-				end,
-				function()
-					tasks.await(key_down .. '_up')
-					tasks.emit('bumper' .. bumperN .. '_done')
-				end
-				)(true, true)
-			end
-			)()
-			-- A atualização da posição executa como uma tarefa independente
-			-- Espera ela terminar antes de permitir iniciar o movimento novamente
-			tasks.await('bumper' .. bumperN .. '_done')
-		end
-	end)(true)
-end
---]]
-
---[[
-function startBumper1Task()
-	local maxY = screenHeight - bumperHeight
-	local function move(key, dir)
-		tasks.await(key .. '_down')
-		tasks.par_or(function()
-			while true do
-				local dt = tasks.await('update')
-				bumper1Y = math.min(maxY, math.max(0, bumper1Y + dir * bumperSpeed * dt))
-			end
-		end,
-		function()
-			tasks.await(key .. '_up')
-			tasks.emit('bumper1_done')
-		end
-		)(true, true)
-	end
-
-	tasks.task_t:new(function()
-		while true do
-			-- Sub-tarefas criadas como independentes para que ao iniciar o
-			-- movimento em uma direção o par_or pare de esperar a tecla da
-			-- direção oposta
-			tasks.par_or(
-				function() move('w', -1) end,
-				function() move('s', 1) end
-			)()
-			-- A atualização da posição executa como uma tarefa independente
-			-- Espera ela terminar antes de permitir iniciar o movimento novamente
-			tasks.await('bumper1_done')
-		end
-	end)(true)
-end
---]]
-
 function startBumper1Task()
 	tasks.task_t:new(function()
 		while true do
@@ -218,7 +138,6 @@ end
 function startBallTask()
 	tasks.task_t:new(function()
 		while true do
-			--tasks.await('startMoving')
 			local dt = tasks.await('update')
 			ballX = ballX + ballXSpeed * dt
 			ballY = ballY + ballYSpeed * dt
@@ -258,7 +177,6 @@ end
 
 function love.update(dt)
 	tasks.emit('update', dt)
-	--tasks.update_time(dt * 1000)
 end
 
 function love.draw()
