@@ -19,7 +19,6 @@ local bumper2Y = bumper1Y
 
 local ballSpeed = 250
 local ballSize = 20
-local ballMaxSpeedRatio = 3
 local ballXInitial = (screenWidth - ballSize) / 2
 local ballYInitial = (screenHeight - ballSize) / 2
 local ballX = ballXInitial
