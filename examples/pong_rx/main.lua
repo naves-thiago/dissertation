@@ -87,7 +87,7 @@ function love.load()
 				acc[1] = acc[1] + newX
 				acc[2] = acc[2] + newY
 				return acc
-			end, {ballX, ballY})
+			end, {ballXInitial, ballYInitial})
 			:takeUntil(didScoreS)
 			:tap(function()
 				if didColideX() then
@@ -110,8 +110,6 @@ function love.load()
 			ballX < 0 then
 			print('score')
 			didScoreS(1)
-			ballX = ballXInitial
-			ballY = ballYInitial
 			ballYSpeed = 0
 			startMovingS(1)
 		end
