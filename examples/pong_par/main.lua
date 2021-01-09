@@ -55,34 +55,37 @@ function startBumper1Task()
 			-- movimento em uma direção o par_or pare de esperar a tecla da
 			-- direção oposta
 			tasks.par_or(
-			function()
-				tasks.await('w_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						bumper1Y = math.max(0, bumper1Y - bumperSpeed * dt)
-					end
+				function()
+					tasks.await('w_down')
+					tasks.par_or(
+						function()
+							while true do
+								local dt = tasks.await('update')
+								bumper1Y = math.max(0, bumper1Y - bumperSpeed * dt)
+							end
+						end,
+						function()
+							tasks.await('w_up')
+							tasks.emit('bumper1_done')
+						end
+					)(true, true)
 				end,
 				function()
-					tasks.await('w_up')
-					tasks.emit('bumper1_done')
+					tasks.await('s_down')
+					tasks.par_or(
+						function()
+							while true do
+								local dt = tasks.await('update')
+								bumper1Y = math.min(screenHeight - bumperHeight,
+								                    bumper1Y + bumperSpeed * dt)
+							end
+						end,
+						function()
+							tasks.await('s_up')
+							tasks.emit('bumper1_done')
+						end
+					)(true, true)
 				end
-				)(true, true)
-			end,
-			function()
-				tasks.await('s_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						bumper1Y = math.min(screenHeight - bumperHeight, bumper1Y + bumperSpeed * dt)
-					end
-				end,
-				function()
-					tasks.await('s_up')
-					tasks.emit('bumper1_done')
-				end
-				)(true, true)
-			end
 			)()
 			-- A atualização da posição executa como uma tarefa independente
 			-- Espera ela terminar antes de permitir iniciar o movimento novamente
@@ -98,34 +101,37 @@ function startBumper2Task()
 			-- movimento em uma direção o par_or pare de esperar a tecla da
 			-- direção oposta
 			tasks.par_or(
-			function()
-				tasks.await('up_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						bumper2Y = math.max(0, bumper2Y - bumperSpeed * dt)
-					end
+				function()
+					tasks.await('up_down')
+					tasks.par_or(
+						function()
+							while true do
+								local dt = tasks.await('update')
+								bumper2Y = math.max(0, bumper2Y - bumperSpeed * dt)
+							end
+						end,
+						function()
+							tasks.await('up_up')
+							tasks.emit('bumper2_done')
+						end
+					)(true, true)
 				end,
 				function()
-					tasks.await('up_up')
-					tasks.emit('bumper2_done')
+					tasks.await('down_down')
+					tasks.par_or(
+						function()
+							while true do
+								local dt = tasks.await('update')
+								bumper2Y = math.min(screenHeight - bumperHeight,
+								                    bumper2Y + bumperSpeed * dt)
+							end
+						end,
+						function()
+							tasks.await('down_up')
+							tasks.emit('bumper2_done')
+						end
+					)(true, true)
 				end
-				)(true, true)
-			end,
-			function()
-				tasks.await('down_down')
-				tasks.par_or(function()
-					while true do
-						local dt = tasks.await('update')
-						bumper2Y = math.min(screenHeight - bumperHeight, bumper2Y + bumperSpeed * dt)
-					end
-				end,
-				function()
-					tasks.await('down_up')
-					tasks.emit('bumper2_done')
-				end
-				)(true, true)
-			end
 			)()
 			-- A atualização da posição executa como uma tarefa independente
 			-- Espera ela terminar antes de permitir iniciar o movimento novamente
@@ -166,8 +172,7 @@ function love.load()
 end
 
 function love.keypressed(key, scancode, isrepeat)
-	if isrepeat then return end
-	tasks.emit(key .. '_down', 'asd')
+	tasks.emit(key .. '_down')
 end
 
 function love.keyreleased(key)
