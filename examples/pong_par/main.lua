@@ -51,10 +51,7 @@ end
 function startBumper1Task()
 	tasks.task_t:new(function()
 		while true do
-			-- Sub-tarefas criadas como independentes para que ao iniciar o
-			-- movimento em uma direção o par_or pare de esperar a tecla da
-			-- direção oposta
-			tasks.par_or(
+			tasks.par_or( -- Espera 'w_down' e 's_down' simultaneamente
 				function()
 					tasks.await('w_down')
 					tasks.par_or(
@@ -66,9 +63,13 @@ function startBumper1Task()
 						end,
 						function()
 							tasks.await('w_up')
+							-- Volta a esperar o início do movimento
 							tasks.emit('bumper1_done')
 						end
-					)(true, true)
+					)(true, true) -- Inicia esse par_or sem bloquear a tarefa e não
+					              -- termina quando ela terminar
+					-- A tarefa termina imediatamente após iniciar o par_or,
+					-- terminando o par_or mais externo (mas não o interno)
 				end,
 				function()
 					tasks.await('s_down')
@@ -84,7 +85,10 @@ function startBumper1Task()
 							tasks.await('s_up')
 							tasks.emit('bumper1_done')
 						end
-					)(true, true)
+					)(true, true) -- Inicia esse par_or sem bloquear a tarefa e não
+					              -- termina quando ela terminar
+					-- A tarefa termina imediatamente após iniciar o par_or,
+					-- terminando o par_or mais externo (mas não o interno)
 				end
 			)()
 			-- A atualização da posição executa como uma tarefa independente
@@ -144,17 +148,21 @@ function startBallTask()
 	tasks.task_t:new(function()
 		while true do
 			local dt = tasks.await('update')
+			-- Calcula o deslocamento da bola a cada dt segundos
 			ballX = ballX + ballXSpeed * dt
 			ballY = ballY + ballYSpeed * dt
 			if didColideX() then
+				-- Colisão com rebatedor -> calcula nova velocidade em Y
 				ballXSpeed = -ballXSpeed
 				setBallDirection()
 			end
 			if didColideY() then
+				-- Colisão com a borda superior / inferior
 				ballYSpeed = -ballYSpeed
 			end
 			if ballX > screenWidth - ballSize or
 				ballX < 0 then
+				-- Colisão com a borda direita / esquerda -> ponto
 				print('score')
 				ballX = ballXInitial
 				ballY = ballYInitial

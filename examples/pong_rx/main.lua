@@ -28,15 +28,23 @@ local ballYSpeed = 0
 
 function bumperPosFactory(keyUp, keyDown, currPos)
 	return love.keypressed
+		-- Filtra as teclas de interesse
 		:filter(function(key) return key == keyUp or key == keyDown end)
 		:exhaustMap(function(key)
+			-- Define a direção do movimento (constante enquanto a
+			-- tecla estiver pressionada)
 			local speed = key == keyUp and -bumperSpeed or bumperSpeed
 			return love.update:map(function(dt) return dt * speed end)
+				-- Acumula a posição Y do rebatedor
 				:scan(function(acc, new) return acc + new end, currPos)
 				:takeWhile(function(pos)
 					return pos >= 0 and pos <= screenHeight - bumperHeight
 				end)
+				-- Para ao soltar a tecla apenas se for a tecla que
+				-- iniciou o movimento
 				:takeUntil(love.keyreleased:filter(function(k) return key == k end))
+				-- Guarda a posição atual para a próxima vez que o rebatedor
+				-- for movido
 				:tap(function(pos) currPos = pos end)
 		end)
 end
@@ -83,18 +91,22 @@ function love.load()
 		return love.update
 			:map(function(dt) return dt * ballXSpeed, dt * ballYSpeed end)
 			:scan(function(acc, newX, newY)
+				-- O valor acumulado é uma tabela com 2 entradas:
+				-- posições X e Y
 				acc = acc or {0, 0}
 				acc[1] = acc[1] + newX
 				acc[2] = acc[2] + newY
 				return acc
 			end, {ballXInitial, ballYInitial})
-			:takeUntil(didScoreS)
+			:takeUntil(didScoreS) -- Completa a cadeia quando alguém pontuar
 			:tap(function()
 				if didColideX() then
+					-- Colisão com rebatedor -> calcula nova velocidade em Y
 					ballXSpeed = -ballXSpeed
 					setBallDirection()
 				end
 				if didColideY() then
+					-- Colisão com a borda
 					ballYSpeed = -ballYSpeed
 				end
 			end)
