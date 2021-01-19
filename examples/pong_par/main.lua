@@ -20,6 +20,9 @@ local ballY = ballYInitial
 local ballXSpeed = ballSpeed
 local ballYSpeed = 0
 
+local matchLen = 180 -- Seconds
+local clockText = ''
+
 function didColideX()
 	if ballY + ballSize>= bumper1Y and ballY <= bumper1Y + bumperHeight and
 		ballX <= bumper1X + bumperWidth and ballXSpeed < 0 then
@@ -145,7 +148,7 @@ function startBumper2Task()
 end
 
 function startBallTask()
-	tasks.task_t:new(function()
+	local function update_ball_pos()
 		while true do
 			local dt = tasks.await('update')
 			-- Calcula o deslocamento da bola a cada dt segundos
@@ -169,11 +172,31 @@ function startBallTask()
 				ballYSpeed = 0
 			end
 		end
-	end)(true, true)
+	end
+	tasks.par_or(
+		update_ball_pos,
+		function()
+			-- Para a bola quando acabar o tempo da partida
+			tasks.await_ms(matchLen * 1000)
+			clockText = '00:00'
+		end,
+		function()
+			-- Atualiza o relógio na tela uma vez por segundo
+			local time = math.ceil(matchLen - tasks.now_ms() / 1000)
+			clockText = string.format('%02d:%02d', time / 60, time % 60)
+			while true do
+				tasks.await_ms(1000)
+				local time = math.ceil(matchLen - tasks.now_ms() / 1000)
+				clockText = string.format('%02d:%02d', time / 60, time % 60)
+			end
+		end
+	)(true, true)
 end
 
 function love.load()
 	love.window.setMode(screenWidth, screenHeight)
+	love.graphics.setFont(love.graphics.newFont(18))
+	love.graphics.setColor(1, 1, 1)
 	startBumper1Task()
 	startBumper2Task()
 	startBallTask()
@@ -189,9 +212,11 @@ end
 
 function love.update(dt)
 	tasks.emit('update', dt)
+	tasks.update_time(dt * 1000)
 end
 
 function love.draw()
+	love.graphics.print(clockText, 280, 10)
 	love.graphics.rectangle('fill', ballX, ballY, ballSize, ballSize)
 	love.graphics.rectangle('fill', bumper1X, bumper1Y, bumperWidth, bumperHeight)
 	love.graphics.rectangle('fill', bumper2X, bumper2Y, bumperWidth, bumperHeight)
