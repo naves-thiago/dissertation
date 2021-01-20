@@ -129,10 +129,12 @@ function love.load()
 	end)
 
 	rx.Observable.Interval(1, clockScheduler)
+		:map(function(elapsed) return elapsed + 1 end)
 		:takeWhile(function(elapsed)
 			-- Completa a cadeia quando acabar o tempo da partida
 			return elapsed < matchLen
 		end)
+		:startWith(0)
 		:subscribe(function(elapsed) -- onNext
 			-- Atualiza o relógio na tela uma vez por segundo
 			local time = math.floor(matchLen - elapsed)

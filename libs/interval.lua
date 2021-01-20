@@ -4,7 +4,7 @@ local Observer = rx.Observer
 local Subscription = rx.Subscription
 
 function Observable.Interval(interval, scheduler)
-	local count = 1
+	local count = 0
 	local observers = {}
 
 	local function onNext()
