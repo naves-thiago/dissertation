@@ -1,6 +1,7 @@
 rx = require'rx'
 require'exhaustMap'
 require'resub'
+require'interval'
 
 love.keypressed = rx.Subject.create()
 love.keyreleased = rx.Subject.create()
@@ -25,7 +26,7 @@ local ballY = ballYInitial
 local ballXSpeed = ballSpeed
 local ballYSpeed = 0
 
-local matchLen = 180 -- Seconds
+local matchLen = 18 -- Seconds
 local clockScheduler = rx.CooperativeScheduler.create(0)
 local clockText = ''
 
@@ -113,7 +114,7 @@ function love.load()
 				return acc
 			end, {ballXInitial, ballYInitial})
 			:takeUntil(didScoreS) -- Completa a cadeia quando alguém pontuar
-			:takeUntil(matchEnded)
+			:takeUntil(matchEnded) -- Para a bola quando acabar o tempo da partida
 			:tap(function()
 				if didColideX() then
 					-- Colisão com rebatedor -> calcula nova velocidade em Y
@@ -127,23 +128,23 @@ function love.load()
 			end)
 	end)
 
-	clockScheduler:schedule(function()
-		while true do
-			local time = math.floor(matchLen - clockScheduler.currentTime)
-			if time > 0 then
-				local min = time / 60
-				local sec = time % 60
-				clockText = string.format('%02d:%02d', min, sec)
-				coroutine.yield(1)
-			else
-				matchEnded()
-				clockText = '00:00'
-				break
-			end
-		end
-	end, 0)
-
-	
+	rx.Observable.Interval(1, clockScheduler)
+		:takeWhile(function(elapsed)
+			-- Completa a cadeia quando acabar o tempo da partida
+			return elapsed < matchLen
+		end)
+		:subscribe(function(elapsed) -- onNext
+			-- Atualiza o relógio na tela uma vez por segundo
+			local time = math.floor(matchLen - elapsed)
+			local min = time / 60
+			local sec = time % 60
+			clockText = string.format('%02d:%02d', min, sec)
+		end,
+		nil, -- onError
+		function() -- onCompleted
+			matchEnded()
+			clockText = '00:00'
+		end)
 
 	ballPosS:subscribe(function(pos)
 		ballX = pos[1]
