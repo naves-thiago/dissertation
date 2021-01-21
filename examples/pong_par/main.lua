@@ -104,10 +104,7 @@ end
 function startBumper2Task()
 	tasks.task_t:new(function()
 		while true do
-			-- Sub-tarefas criadas como independentes para que ao iniciar o
-			-- movimento em uma direção o par_or pare de esperar a tecla da
-			-- direção oposta
-			tasks.par_or(
+			tasks.par_or( -- Espera 'w_down' e 's_down' simultaneamente
 				function()
 					tasks.await('up_down')
 					tasks.par_or(
@@ -119,9 +116,13 @@ function startBumper2Task()
 						end,
 						function()
 							tasks.await('up_up')
+							-- Volta a esperar o início do movimento
 							tasks.emit('bumper2_done')
 						end
-					)(true, true)
+					)(true, true) -- Inicia esse par_or sem bloquear a tarefa e não
+					              -- termina quando ela terminar
+					-- A tarefa termina imediatamente após iniciar o par_or,
+					-- terminando o par_or mais externo (mas não o interno)
 				end,
 				function()
 					tasks.await('down_down')
@@ -137,7 +138,10 @@ function startBumper2Task()
 							tasks.await('down_up')
 							tasks.emit('bumper2_done')
 						end
-					)(true, true)
+					)(true, true) -- Inicia esse par_or sem bloquear a tarefa e não
+					              -- termina quando ela terminar
+					-- A tarefa termina imediatamente após iniciar o par_or,
+					-- terminando o par_or mais externo (mas não o interno)
 				end
 			)()
 			-- A atualização da posição executa como uma tarefa independente
