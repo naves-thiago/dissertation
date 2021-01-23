@@ -26,7 +26,7 @@ local ballY = ballYInitial
 local ballXSpeed = ballSpeed
 local ballYSpeed = 0
 
-local matchLen = 18 -- Seconds
+local matchLen = 180 -- Seconds
 local clockScheduler = rx.CooperativeScheduler.create(0)
 local clockText = ''
 
