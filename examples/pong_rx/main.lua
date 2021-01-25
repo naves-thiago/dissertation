@@ -1,6 +1,5 @@
 rx = require'rx'
 require'exhaustMap'
-require'resub'
 require'interval'
 
 love.keypressed = rx.Subject.create()
