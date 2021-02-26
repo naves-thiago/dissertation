@@ -50,6 +50,45 @@ function setBallDirection()
 	ballYSpeed = distCenter * ballSpeed * dirY
 end
 
+function bumperTaskFactory(key_up, key_down, bumper)
+	tasks.task_t:new(function()
+		while true do
+			local up_event -- Evento de soltura da tecla
+			local speed -- Velovidade e direção do movimento
+			tasks.par_or( -- Aguarda uma tecla ser pressionada
+				function()
+					tasks.await(key_up .. '_down')
+					up_event = key_up .. '_up'
+					speed = -bumperSpeed
+				end,
+				function()
+					tasks.await(key_down .. '_down')
+					up_event = key_down .. '_up'
+					speed = bumperSpeed
+				end
+			)()
+
+			tasks.par_or( -- Movimenta o rebatedor
+				function()
+					tasks.await(up_event)
+				end,
+				function()
+					while true do
+						local dt = tasks.await('update')
+						if bumper == 1 then
+							bumper1Y = math.max(0, math.min(screenHeight - bumperHeight,
+							                                bumper1Y + speed * dt))
+						else
+							bumper2Y = math.max(0, math.min(screenHeight - bumperHeight,
+							                                bumper2Y + speed * dt))
+						end
+					end
+				end
+			)()
+		end
+	end)(true, true)
+end
+
 function startBumper1Task()
 	tasks.task_t:new(function()
 		while true do
@@ -200,8 +239,10 @@ function love.load()
 	love.window.setMode(screenWidth, screenHeight)
 	love.graphics.setFont(love.graphics.newFont(18))
 	love.graphics.setColor(1, 1, 1)
-	startBumper1Task()
-	startBumper2Task()
+	bumperTaskFactory('w', 's', 1)
+	bumperTaskFactory('up', 'down', 2)
+	--startBumper1Task()
+	--startBumper2Task()
 	startBallTask()
 end
 
