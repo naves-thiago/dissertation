@@ -81,7 +81,6 @@ function setBallDirection()
 	local bumperY = ballX < screenWidth / 2 and bumper1Y or bumper2Y
 	local top = math.max(ballY, bumperY)
 	local distCenter = 2 * math.abs(bumperY + bumperHeight / 2 - top) / bumperHeight
-	local dirX = ballXSpeed ~=0 and ballXSpeed / math.abs(ballXSpeed) or 1
 	local dirY = top < bumperY + bumperHeight / 2 and -1 or 1
 	ballYSpeed = distCenter * ballSpeed * dirY
 end
@@ -91,7 +90,7 @@ function love.load()
 	love.graphics.setFont(love.graphics.newFont(18))
 	love.graphics.setColor(1, 1, 1)
 
-	local matchEnded = rx.Subject.create()
+	local matchEndedS = rx.Subject.create()
 
 	local bumper1YS = bumperPosFactory('w', 's', bumper1Y)
 	local bumper2YS = bumperPosFactory('up', 'down', bumper2Y)
@@ -113,7 +112,7 @@ function love.load()
 				return acc
 			end, {ballXInitial, ballYInitial})
 			:takeUntil(didScoreS) -- Completa a cadeia quando alguém pontuar
-			:takeUntil(matchEnded) -- Para a bola quando acabar o tempo da partida
+			:takeUntil(matchEndedS) -- Para a bola quando acabar o tempo da partida
 			:tap(function()
 				if didColideX() then
 					-- Colisão com rebatedor -> calcula nova velocidade em Y
@@ -143,7 +142,7 @@ function love.load()
 		end,
 		nil, -- onError
 		function() -- onCompleted
-			matchEnded()
+			matchEndedS()
 			clockText = '00:00'
 		end)
 
@@ -152,7 +151,7 @@ function love.load()
 		ballY = pos[2]
 	end)
 
-	ballPosS:subscribe(function(x)
+	ballPosS:subscribe(function()
 		if ballX > screenWidth - ballSize or
 			ballX < 0 then
 			print('score')

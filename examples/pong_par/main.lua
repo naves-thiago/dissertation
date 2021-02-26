@@ -46,7 +46,6 @@ function setBallDirection()
 	local bumperY = ballX < screenWidth / 2 and bumper1Y or bumper2Y
 	local top = math.max(ballY, bumperY)
 	local distCenter = 2 * math.abs(bumperY + bumperHeight / 2 - top) / bumperHeight
-	local dirX = ballXSpeed ~=0 and ballXSpeed / math.abs(ballXSpeed) or 1
 	local dirY = top < bumperY + bumperHeight / 2 and -1 or 1
 	ballYSpeed = distCenter * ballSpeed * dirY
 end
@@ -190,7 +189,7 @@ function startBallTask()
 			clockText = string.format('%02d:%02d', time / 60, time % 60)
 			while true do
 				tasks.await_ms(1000)
-				local time = math.ceil(matchLen - tasks.now_ms() / 1000)
+				time = math.ceil(matchLen - tasks.now_ms() / 1000)
 				clockText = string.format('%02d:%02d', time / 60, time % 60)
 			end
 		end
