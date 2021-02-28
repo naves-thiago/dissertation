@@ -71,17 +71,25 @@ function love.load()
 			return animations.tween(load_ico.y, 0, 200)
 		end)
 
-	-- Report mouse Y movement while the mouse is down relative to the mouse down position
+	-- Report mouse Y movement while the mouse is down relative to
+	-- the mouse down position
 	local mouse_drag = love.mousepressed:exhaustMap(function(start_x, start_y)
 		return rx.Observable.concat(
 				love.mousemoved
-					:map(function(x, y) return y - start_y end) -- extract Y and offset by the start Y
-					:takeUntil(love.mousereleased), -- stop tracking when the mouse is released
+					-- extract Y and offset by the start Y
+					:map(function(x, y) return y - start_y end)
+					-- stop tracking when the mouse is released
+					:takeUntil(love.mousereleased),
 				load_ico_move_home
 				)
 					-- Trigger a news reload when we go past half window
-					:tap(function(y) if y > window_height() / 2 then refresh:onNext(1) end end)
-					:takeWhile(function(y) return y <= window_height() / 2 end) -- Stop when we get bellow half screen
+					:tap(function(y)
+						if y > window_height() / 2 then
+							refresh:onNext(1)
+						end
+					end)
+					-- Stop when we get bellow half screen
+					:takeWhile(function(y) return y <= window_height() / 2 end)
 	end):share()
 
 	-- Animate the icon back home after loading the news
@@ -93,8 +101,10 @@ function love.load()
 
 	-- Emits the positions for the loading icon
 	local load_ico_position = load_ico_position_update
-		:startWith(-load_ico.size / 2) -- Start outside the screen (account for diagonal size due to rotation)
-		:map(function(y) return y - load_ico.size end) -- Offset by the square size
+		-- Start outside the screen (account for diagonal size due to rotation)
+		:startWith(-load_ico.size / 2)
+		-- Offset by the square size
+		:map(function(y) return y - load_ico.size end)
 
 	-- Loading icon rotation observable
 	local load_ico_rotate = refresh:exhaustMap(function()
